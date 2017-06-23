@@ -36,3 +36,27 @@ class struct_processor(TestCase):
             io.BytesIO(raw_data))
         self.assertEqual(1, struct['field']['value'])
         self.assertEqual(raw_data, struct['field']['raw_data'])
+
+    def test_struct_unpack_can_unpack_two_numeric_fields_of_same_size(self):        
+        raw_data = bytes([0x01, 0x02])
+        struct = Struct('sample', [
+            make_numeric_field('field1'),
+            make_numeric_field('field2')
+        ]).Unpack(
+            io.BytesIO(raw_data))
+        self.assertEqual(1, struct['field1']['value'])
+        self.assertEqual(b'\x01', struct['field1']['raw_data'])
+        self.assertEqual(2, struct['field2']['value'])
+        self.assertEqual(b'\x02', struct['field2']['raw_data'])
+
+    def test_struct_unpack_can_unpack_two_numeric_fields_of_same_size(self):
+        raw_data = bytes([0x01, 0x02, 0x03])
+        struct = Struct('sample', [
+            make_numeric_field('field1'),
+            make_numeric_field('field2', 2)
+        ]).Unpack(
+            io.BytesIO(raw_data))
+        self.assertEqual(1, struct['field1']['value'])
+        self.assertEqual(b'\x01', struct['field1']['raw_data'])
+        self.assertEqual(0x0302, struct['field2']['value'])
+        self.assertEqual(b'\x02\x03', struct['field2']['raw_data'])

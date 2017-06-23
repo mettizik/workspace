@@ -9,7 +9,6 @@
     "**/*.pyc": true
     },
     "python.unitTest.unittestArgs": [
-        "-v",
         "-s",
         "${workspaceRoot}/workspace/tests",
         "-p",
