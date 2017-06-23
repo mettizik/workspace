@@ -2,6 +2,9 @@ from unittest import TestCase
 from workspace.bindata.struct_unpack import *
 
 
+def make_bytes_field(field_name='sample', _bytes_count=0):
+    return Struct.Field(field_name, Struct.Field.TYPE_BYTES, size=_bytes_count)
+
 def make_string_field(field_name='sample', _bytes_count=0):
     return Struct.Field(field_name, Struct.Field.TYPE_STRING, size=_bytes_count)
 
@@ -101,3 +104,27 @@ class struct_processor(TestCase):
         self.assertEqual(raw_data[:-1], struct['str']['raw_data'])
         self.assertEqual(0x6f, struct['num']['value'])
         self.assertEqual(raw_data[-1:], struct['num']['raw_data'])
+    
+    def test_field_unpack_can_unpack_bytes_hello(self):
+        raw_data = b'hello'
+        field = make_bytes_field(_bytes_count=len(raw_data))
+        field.Unpack(io.BytesIO(raw_data))
+        self.assertEqual('68656c6c6f', field.Pretty())
+        self.assertEqual(raw_data, field.Raw())
+
+    def test_struct_unpack_can_unpack_string_hellohello_into_string_and_numeric_fields(self):
+        raw_data = b'hellohello'
+
+        struct = Struct('sample', [
+            make_string_field('str', _bytes_count=len(raw_data) - 6),
+            make_numeric_field('num'),
+            make_bytes_field('hex', 5)
+        ]).Unpack(
+            io.BytesIO(raw_data))
+
+        self.assertEqual('hell', struct['str']['value'])
+        self.assertEqual(raw_data[:-6], struct['str']['raw_data'])
+        self.assertEqual(0x6f, struct['num']['value'])
+        self.assertEqual(raw_data[-6:-5], struct['num']['raw_data'])
+        self.assertEqual('68656c6c6f', struct['hex']['value'])
+        self.assertEqual(raw_data[-5:], struct['hex']['raw_data'])

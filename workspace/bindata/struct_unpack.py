@@ -1,5 +1,7 @@
 import io
 from sys import byteorder as SystemByteorder
+from binascii import hexlify
+
 class Struct:
     """
 class that represents a binary structure
@@ -22,6 +24,9 @@ class that represents a binary structure
 
         TYPE_BYTES  = 2
 
+        def PrettyfyBytes(self, raw_data):            
+            return hexlify(raw_data).decode()
+
         def __init__(self, field_name: str, field_type: int, size=None):
             """
         create a field of a structure with given name, type and size
@@ -34,7 +39,8 @@ class that represents a binary structure
             self._byteorder = SystemByteorder
             self._decoders = {
                 Struct.Field.TYPE_NUMBER: Struct.Field.PrettyfyNumber,
-                Struct.Field.TYPE_STRING: Struct.Field.PrettyfyString
+                Struct.Field.TYPE_STRING: Struct.Field.PrettyfyString,
+                Struct.Field.TYPE_BYTES: Struct.Field.PrettyfyBytes
             }
 
         def Unpack(self, bindata):
