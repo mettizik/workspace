@@ -11,7 +11,15 @@ class that represents a binary structure
         """
 
         TYPE_NUMBER = 0
+
+        def PrettyfyNumber(self, raw_data):
+            return int.from_bytes(raw_data, byteorder=self._byteorder)
+
         TYPE_STRING = 1
+
+        def PrettyfyString(self, raw_data):
+            return raw_data.decode()
+
         TYPE_BYTES  = 2
 
         def __init__(self, field_name: str, field_type: int, size=None):
@@ -24,6 +32,10 @@ class that represents a binary structure
             self._value = None
             self._raw_data = None
             self._byteorder = SystemByteorder
+            self._decoders = {
+                Struct.Field.TYPE_NUMBER: Struct.Field.PrettyfyNumber,
+                Struct.Field.TYPE_STRING: Struct.Field.PrettyfyString
+            }
 
         def Unpack(self, bindata):
             """
@@ -38,10 +50,7 @@ class that represents a binary structure
             """
         Returns a pretty-formatted value
             """
-            if self._type == Struct.Field.TYPE_NUMBER:
-                return int.from_bytes(self._raw_data, byteorder=self._byteorder)
-            elif self._type == Struct.Field.TYPE_STRING:
-                return self.Raw().decode()
+            return self._decoders[self._type](self, self._raw_data)
         
         def Raw(self):
             """
