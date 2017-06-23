@@ -88,3 +88,16 @@ class struct_processor(TestCase):
         with self.assertRaises(BufferError):
             field.Unpack(io.BytesIO(raw_data))
 
+    def test_struct_unpack_can_unpack_string_hello_into_string_and_numeric_fields(self):
+        raw_data = b'hello'
+
+        struct = Struct('sample', [
+            make_string_field('str', _bytes_count=len(raw_data) - 1),
+            make_numeric_field('num')
+        ]).Unpack(
+            io.BytesIO(raw_data))
+
+        self.assertEqual('hell', struct['str']['value'])
+        self.assertEqual(raw_data[:-1], struct['str']['raw_data'])
+        self.assertEqual(0x6f, struct['num']['value'])
+        self.assertEqual(raw_data[-1:], struct['num']['raw_data'])
