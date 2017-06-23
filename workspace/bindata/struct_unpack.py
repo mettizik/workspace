@@ -31,6 +31,21 @@ class that represents a binary structure
         self._name = name
         self._fields = fields
 
+    def Unpack(self, binary_data: io.RawIOBase):
+        """
+        Unpack binary data as provided structure definition
+        """
+        retvals = {}
+        for field in self._fields:
+            unpack_field(field, binary_data)
+            retvals[field.name] = {
+                'value': field.value,
+                'raw_data': field.raw_data
+            }
+
+        return retvals
+
+
 def unpack_field(field: Struct.Field, bindata:io.RawIOBase):
     raw_data = bindata.read(field.size)
     field.value = int.from_bytes(raw_data, byteorder=SystemByteorder)
