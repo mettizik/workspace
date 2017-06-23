@@ -1,6 +1,6 @@
 *.pyc
 *.bak
 *.tmp
-workspace.egg-info/*
-dist/*
-build/*
+workspace.egg-info
+dist
+build
