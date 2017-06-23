@@ -1,6 +1,10 @@
 from unittest import TestCase
 from workspace.bindata.struct_unpack import *
 
+
+def make_string_field(field_name='sample', _bytes_count=0):
+    return Struct.Field(field_name, Struct.Field.TYPE_STRING, size=_bytes_count)
+
 def make_numeric_field(field_name='sample', _bytes_count=1):
     return Struct.Field(field_name, Struct.Field.TYPE_NUMBER, size=_bytes_count)
 
@@ -60,3 +64,27 @@ class struct_processor(TestCase):
         self.assertEqual(b'\x01', struct['field1']['raw_data'])
         self.assertEqual(0x0302, struct['field2']['value'])
         self.assertEqual(b'\x02\x03', struct['field2']['raw_data'])
+    
+    def test_struct_unpack_can_unpack_one_numeric_field_and_skips_unused_dat(self):
+        raw_data = bytes([0x01, 0x02, 0x03])
+        struct = Struct('sample', [
+            make_numeric_field('field1')
+        ]).Unpack(
+            io.BytesIO(raw_data))
+        self.assertEqual(1, struct['field1']['value'])
+        self.assertEqual(b'\x01', struct['field1']['raw_data'])
+        self.assertEqual(1, len(struct))
+
+    def test_field_unpack_can_unpack_string_hello(self):
+        raw_data = b'hello'
+        field = make_string_field(_bytes_count=len(raw_data))
+        field.Unpack(io.BytesIO(raw_data))
+        self.assertEqual(raw_data.decode(), field.Pretty())
+        self.assertEqual(raw_data, field.Raw())
+
+    def test_field_unpack_throws_on_length_less_than_provided(self):
+        raw_data = b'hell'
+        field = make_string_field(_bytes_count=5)
+        with self.assertRaises(BufferError):
+            field.Unpack(io.BytesIO(raw_data))
+

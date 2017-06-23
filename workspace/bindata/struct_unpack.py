@@ -30,13 +30,18 @@ class that represents a binary structure
         Unpack binary data as provided in field's description
             """
             raw_data = bindata.read(self._size)
+            if len(raw_data) != self._size:
+                raise BufferError('Buffer has not enough data to unpack field ({} < {})'.format(len(raw_data), self._size))
             self._raw_data = raw_data
         
         def Pretty(self):
             """
         Returns a pretty-formatted value
             """
-            return int.from_bytes(self._raw_data, byteorder=self._byteorder)
+            if self._type == Struct.Field.TYPE_NUMBER:
+                return int.from_bytes(self._raw_data, byteorder=self._byteorder)
+            elif self._type == Struct.Field.TYPE_STRING:
+                return self.Raw().decode()
         
         def Raw(self):
             """
