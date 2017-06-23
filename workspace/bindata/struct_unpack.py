@@ -18,11 +18,37 @@ class that represents a binary structure
             """
         create a field of a structure with given name, type and size
             """
-            self.name = field_name
-            self.type = field_type
-            self.size = size
-            self.value = None
-            self.raw_data = None
+            self._name = field_name
+            self._type = field_type
+            self._size = size
+            self._value = None
+            self._raw_data = None
+            self._byteorder = SystemByteorder
+
+        def Unpack(self, bindata):
+            """
+        Unpack binary data as provided in field's description
+            """
+            raw_data = bindata.read(self._size)
+            self._raw_data = raw_data
+        
+        def Pretty(self):
+            """
+        Returns a pretty-formatted value
+            """
+            return int.from_bytes(self._raw_data, byteorder=self._byteorder)
+        
+        def Raw(self):
+            """
+        Returns a raw binary data stored in field
+            """
+            return self._raw_data
+        
+        def Name(self):
+            """
+        Returns defined name
+            """
+            return self._name
 
     def __init__(self, name:str, fields:list):
         """
@@ -33,20 +59,16 @@ class that represents a binary structure
 
     def Unpack(self, binary_data: io.RawIOBase):
         """
-        Unpack binary data as provided structure definition
+    Unpack binary data as provided structure definition
         """
         retvals = {}
         for field in self._fields:
-            unpack_field(field, binary_data)
-            retvals[field.name] = {
-                'value': field.value,
-                'raw_data': field.raw_data
+            field.Unpack(binary_data)
+            retvals[field.Name()] = {
+                'value': field.Pretty(),
+                'raw_data': field.Raw()
             }
 
         return retvals
 
 
-def unpack_field(field: Struct.Field, bindata:io.RawIOBase):
-    raw_data = bindata.read(field.size)
-    field.value = int.from_bytes(raw_data, byteorder=SystemByteorder)
-    field.raw_data = raw_data

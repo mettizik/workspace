@@ -7,9 +7,9 @@ def make_numeric_field(field_name='sample', _bytes_count=1):
 def unpack_and_test_numeric_field(self, numb, bytes_count=1):    
     field = make_numeric_field(_bytes_count=bytes_count)
     data = io.BytesIO(numb.to_bytes(bytes_count, SystemByteorder))
-    unpack_field(field, data)
-    self.assertEqual(field.value, numb)
-    self.assertEqual(field.raw_data, data.getvalue())
+    field.Unpack(data)
+    self.assertEqual(field.Pretty(), numb)
+    self.assertEqual(field.Raw(), data.getvalue())
     return field
 
 class struct_processor(TestCase):
@@ -27,7 +27,7 @@ class struct_processor(TestCase):
 
     def test_field_unpack_can_unpack_integer_100500(self):
         field = unpack_and_test_numeric_field(self, 100500, 3)
-        self.assertEqual(b'\x94\x88\x01', field.raw_data)
+        self.assertEqual(b'\x94\x88\x01', field.Raw())
 
     def test_struct_unpack_can_unpack_sctruct_with_single_numeric_field(self):
         field = make_numeric_field('field')
