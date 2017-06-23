@@ -7,5 +7,13 @@
     "**/*.egg-info": true,
     "**/__pycache__": true,
     "**/*.pyc": true
-    }
+    },
+    "python.unitTest.unittestArgs": [
+        "-v",
+        "-s",
+        "${workspaceRoot}/workspace/tests",
+        "-p",
+        "*test*.py"
+    ],
+    "python.unitTest.unittestEnabled": true
 }
