@@ -128,3 +128,20 @@ class struct_processor(TestCase):
         self.assertEqual(raw_data[-6:-5], struct['num']['raw_data'])
         self.assertEqual('68656c6c6f', struct['hex']['value'])
         self.assertEqual(raw_data[-5:], struct['hex']['raw_data'])
+
+    def test_created_from_text_struct_can_parse_data_correctly(self):
+        raw_data = b'hellohello'
+
+        struct = Struct('sample', [
+            make_string_field('str', _bytes_count=len(raw_data) - 6),
+            make_numeric_field('num'),
+            make_bytes_field('hex', 5)
+        ]).Unpack(
+            io.BytesIO(raw_data))
+
+        self.assertEqual('hell', struct['str']['value'])
+        self.assertEqual(raw_data[:-6], struct['str']['raw_data'])
+        self.assertEqual(0x6f, struct['num']['value'])
+        self.assertEqual(raw_data[-6:-5], struct['num']['raw_data'])
+        self.assertEqual('68656c6c6f', struct['hex']['value'])
+        self.assertEqual(raw_data[-5:], struct['hex']['raw_data'])
