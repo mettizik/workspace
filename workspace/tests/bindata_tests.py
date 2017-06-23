@@ -49,7 +49,7 @@ class struct_processor(TestCase):
         self.assertEqual(2, struct['field2']['value'])
         self.assertEqual(b'\x02', struct['field2']['raw_data'])
 
-    def test_struct_unpack_can_unpack_two_numeric_fields_of_same_size(self):
+    def test_struct_unpack_can_unpack_two_numeric_fields_of_different_size(self):
         raw_data = bytes([0x01, 0x02, 0x03])
         struct = Struct('sample', [
             make_numeric_field('field1'),
