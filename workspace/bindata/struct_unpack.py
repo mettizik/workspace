@@ -34,14 +34,15 @@ class that represents a binary structure
             self._name = field_name
             self._type = field_type
             self._size = size
-            self._value = None
-            self._raw_data = None
             self._byteorder = SystemByteorder
             self._decoders = {
                 Struct.Field.TYPE_NUMBER: Struct.Field.PrettyfyNumber,
                 Struct.Field.TYPE_STRING: Struct.Field.PrettyfyString,
                 Struct.Field.TYPE_BYTES: Struct.Field.PrettyfyBytes
             }
+
+            self._value = None
+            self._raw_data = None
 
         def Unpack(self, bindata):
             """
