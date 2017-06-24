@@ -27,6 +27,35 @@ class that represents a binary structure
         def PrettyfyBytes(self, raw_data):            
             return hexlify(raw_data).decode()
 
+        def from_text(text_line: str):
+            """
+        Build a field from text definition. Line format should match following line:
+            TYPE[LENGTH] NAME;
+            , where:
+                - TYPE - is one of 'number', 'text', 'bytes'
+                - LENGTH - is expected length of field in bytes
+                - NAME - is name of the field 
+            """            
+            correct_line = text_line.replace(' ', '')
+            if text_line:
+                text_to_type = {
+                    'number': Struct.Field.TYPE_NUMBER,
+                    'text': Struct.Field.TYPE_STRING,
+                    'bytes': Struct.Field.TYPE_BYTES,
+                }
+                semicolomn_position = correct_line.find(';')
+                if semicolomn_position == -1:
+                    raise RuntimeError('No semicolumn found in line {}'.format(text_line))
+                closing_bracer_position = correct_line.find(']')
+                opening_bracer_position = correct_line.find('[')
+                type_text = correct_line[:opening_bracer_position]
+                field_size = correct_line[opening_bracer_position + 1:closing_bracer_position]
+                field_size = int(field_size, base=16 if 'x' in field_size else 10)
+                return Struct.Field(
+                    field_name=correct_line[closing_bracer_position + 1:semicolomn_position], 
+                    field_type=text_to_type[type_text], 
+                    size=field_size)
+
         def __init__(self, field_name: str, field_type: int, size=None):
             """
         create a field of a structure with given name, type and size
@@ -91,5 +120,3 @@ class that represents a binary structure
             }
 
         return retvals
-
-

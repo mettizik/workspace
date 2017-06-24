@@ -129,19 +129,84 @@ class struct_processor(TestCase):
         self.assertEqual('68656c6c6f', struct['hex']['value'])
         self.assertEqual(raw_data[-5:], struct['hex']['raw_data'])
 
-    def test_created_from_text_struct_can_parse_data_correctly(self):
-        raw_data = b'hellohello'
 
-        struct = Struct('sample', [
-            make_string_field('str', _bytes_count=len(raw_data) - 6),
-            make_numeric_field('num'),
-            make_bytes_field('hex', 5)
-        ]).Unpack(
-            io.BytesIO(raw_data))
+    def test_field_from_text_return_none_on_empty_text(self):
+        field = Struct.Field.from_text('')
+        self.assertIsNone(field)
 
-        self.assertEqual('hell', struct['str']['value'])
-        self.assertEqual(raw_data[:-6], struct['str']['raw_data'])
-        self.assertEqual(0x6f, struct['num']['value'])
-        self.assertEqual(raw_data[-6:-5], struct['num']['raw_data'])
-        self.assertEqual('68656c6c6f', struct['hex']['value'])
-        self.assertEqual(raw_data[-5:], struct['hex']['raw_data'])
+    def test_field_from_text_return_none_on_text_with_spaces(self):
+        field = Struct.Field.from_text('')
+        self.assertIsNone(field)
+
+    def test_field_from_text_returns_field_with_correct_name(self):
+        field = Struct.Field.from_text('number[1] name;')
+        self.assertIsNotNone(field)
+        self.assertEqual('name', field.Name())
+    
+    def test_field_from_text_raises_when_semicolomn_is_not_present_in_line(self):        
+        with self.assertRaises(RuntimeError):
+            field = Struct.Field.from_text('number[1] name')
+    
+    def test_field_from_text_parses_correctly_lines_with_extra_spaces(self):
+        self.assertEqual('name', Struct.Field.from_text('number[1] name; ').Name())
+        self.assertEqual('name', Struct.Field.from_text('number[1] name  ; ').Name())
+        self.assertEqual('name', Struct.Field.from_text('number[1]    name  ; ').Name())
+        self.assertEqual('name', Struct.Field.from_text(
+            'number[ 1 ]    name  ; ').Name())
+        self.assertEqual('name', Struct.Field.from_text(
+            'number   [ 1 ]    name  ; ').Name())
+        self.assertEqual('name', Struct.Field.from_text(
+            '    number[ 1 ]    name  ; ').Name())
+
+    def test_field_from_text_parses_correctly_numeric_type(self):
+        raw_data = b'hello'
+        field = Struct.Field.from_text('number[1] name;')
+        field.Unpack(io.BytesIO(raw_data))
+        self.assertIsInstance(field.Pretty(), int)
+
+    def test_field_from_text_parses_correctly_text_type(self):
+        raw_data = b'hello'
+        field = Struct.Field.from_text('text[4] name;')
+        field.Unpack(io.BytesIO(raw_data))
+        self.assertIsInstance(field.Pretty(), str)
+
+    def test_field_from_text_parses_correctly_bytes_type(self):
+        raw_data = b'hello'
+        field = Struct.Field.from_text('bytes[4] name;')
+        field.Unpack(io.BytesIO(raw_data))
+        self.assertIsInstance(field.Pretty(), str)
+
+    
+    def test_field_from_text_raises_on_incorrect_typename(self):
+        with self.assertRaises(KeyError):
+            Struct.Field.from_text('byts[4] name;')
+        with self.assertRaises(KeyError):
+            Struct.Field.from_text('b[4] name;')
+        with self.assertRaises(KeyError):
+            Struct.Field.from_text('[4] name;')
+    
+    def test_field_from_text_parses_correctly_size_of_field(self):
+        raw_data = b'hello'
+        field = Struct.Field.from_text('text[4] name;')
+        field.Unpack(io.BytesIO(raw_data))
+        self.assertEqual(4, len(field.Raw()))
+
+    def test_field_from_text_raises_on_empty_size(self):
+        with self.assertRaises(ValueError):
+            Struct.Field.from_text('bytes[] name;')
+
+    def test_field_from_text_raises_on_text_size(self):
+        with self.assertRaises(ValueError):
+            Struct.Field.from_text('bytes[one] name;')
+    
+    def test_field_from_text_not_raises_on_hex_size(self):
+        Struct.Field.from_text('bytes[0x1] name;')
+
+    def test_field_can_be_parsed_from_text(self):
+        raw_data = b'\x0102'
+
+        field = Struct.Field.from_text('number[1] numeric_field;')
+        self.assertEqual('numeric_field', field.Name())
+        field.Unpack(io.BytesIO(raw_data))        
+        self.assertEqual(1, field.Pretty())
+        self.assertEqual(raw_data[:1], field.Raw())
