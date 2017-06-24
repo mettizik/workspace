@@ -27,7 +27,7 @@ class that represents a binary structure
         def PrettyfyBytes(self, raw_data):            
             return hexlify(raw_data).decode()
 
-        def from_text(text_line: str):
+        def from_text(text_line: str, **kwargs):
             """
         Build a field from text definition. Line format should match following line:
             TYPE[LENGTH] NAME;
@@ -35,9 +35,10 @@ class that represents a binary structure
                 - TYPE - is one of 'number', 'text', 'bytes'
                 - LENGTH - is expected length of field in bytes
                 - NAME - is name of the field 
-            """            
-            correct_line = text_line.replace(' ', '')
-            if text_line:
+            """
+            correct_line = ''.join(e for e in text_line.replace(
+                ' ', '').replace('\t', '') if e.isprintable())
+            if correct_line:
                 text_to_type = {
                     'number': Struct.Field.TYPE_NUMBER,
                     'text': Struct.Field.TYPE_STRING,
@@ -100,7 +101,16 @@ class that represents a binary structure
             """
             return self._name
 
-    def __init__(self, name:str, fields:list):
+    def from_text(struct_name: str, text: io.StringIO, **kwargs):
+        """
+    Parses a text representation of a structure into Struct object. 
+        """
+        parsed_fields = [Struct.Field.from_text(
+            line) for line in text.readlines()]
+        parsed_fields = [f for f in parsed_fields if f is not None]
+        return Struct(name=struct_name, fields=parsed_fields, **kwargs)
+
+    def __init__(self, name: str, fields: list):
         """
     Create a structure, with provided names and fields
         """
@@ -120,3 +130,15 @@ class that represents a binary structure
             }
 
         return retvals
+    
+    def Name(self):
+        """
+    Returns structure name
+        """
+        return self._name
+
+    def Fields(self):
+        """
+    Returns all fields of structure
+        """
+        return self._fields

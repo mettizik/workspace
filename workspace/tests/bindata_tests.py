@@ -1,4 +1,6 @@
-from unittest import TestCase
+from unittest import TestCase, main
+from sys import path
+path.append('/home/metizik/projects/workspace/')
 from workspace.bindata.struct_unpack import *
 
 
@@ -210,3 +212,52 @@ class struct_processor(TestCase):
         field.Unpack(io.BytesIO(raw_data))        
         self.assertEqual(1, field.Pretty())
         self.assertEqual(raw_data[:1], field.Raw())
+
+    def test_struct_from_text_can_parse_empty_text(self):
+        text = ""
+        s = Struct.from_text('sample', io.StringIO(text))
+        self.assertEqual('sample', s.Name())
+
+
+    def test_struct_from_text_can_parse_text_with_single_field(self):
+        text = "number[1] numb;"
+        s = Struct.from_text('sample', io.StringIO(text))
+        fields = s.Fields()
+        self.assertEqual(1, len(fields))
+        self.assertEqual('numb', fields[0].Name())
+
+    def test_struct_from_text_can_parse_text_with_several_fields(self):
+        text = """number[1] numb;
+        text[2] text;
+        bytes[3] bytes;"""
+        s = Struct.from_text('sample', io.StringIO(text))
+        fields = s.Fields()
+        self.assertEqual(3, len(fields))
+        self.assertEqual('numb', fields[0].Name())
+        self.assertEqual('text', fields[1].Name())
+        self.assertEqual('bytes', fields[2].Name())
+    
+    def test_field_from_text_returns_none_on_line_without_text(self):
+        self.assertIsNone(Struct.Field.from_text(''))
+        self.assertIsNone(Struct.Field.from_text(' '))
+        self.assertIsNone(Struct.Field.from_text('\t\r\n'))
+    
+
+    def test_struct_from_text_skips_empty_lines(self):
+        text = """number[1] numb;
+
+        text[2] text;
+        
+        bytes[3] bytes;"""
+        s = Struct.from_text('sample', io.StringIO(text))
+        fields = s.Fields()
+        self.assertEqual(3, len(fields))
+        self.assertEqual('numb', fields[0].Name())
+        self.assertEqual('text', fields[1].Name())
+        self.assertEqual('bytes', fields[2].Name())
+
+if __name__== '__main__':
+    main()
+
+
+
