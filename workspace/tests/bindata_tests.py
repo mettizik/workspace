@@ -1,6 +1,5 @@
 from unittest import TestCase, main
 from sys import path
-path.append('/home/metizik/projects/workspace/')
 from workspace.bindata.struct_unpack import *
 
 
